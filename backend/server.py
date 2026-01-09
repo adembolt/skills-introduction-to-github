@@ -339,6 +339,150 @@ async def log_activity(action: str, entity_type: str, entity_id: str, details: s
 async def root():
     return {"message": "Admin Dashboard API", "version": "1.0.0"}
 
+# ============ AUTH ROUTES ============
+
+@api_router.post("/auth/session")
+async def create_session(request: Request, response: Response):
+    """Exchange session_id for session_token and set cookie"""
+    body = await request.json()
+    session_id = body.get("session_id")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id gerekli")
+    
+    # Get user data from Emergent Auth
+    async with httpx.AsyncClient() as client:
+        try:
+            auth_response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": session_id},
+                timeout=10.0
+            )
+            
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Geçersiz session_id")
+            
+            auth_data = auth_response.json()
+        except httpx.RequestError as e:
+            logger.error(f"Auth request failed: {e}")
+            raise HTTPException(status_code=500, detail="Kimlik doğrulama servisi hatası")
+    
+    # Extract user info
+    email = auth_data.get("email")
+    name = auth_data.get("name")
+    picture = auth_data.get("picture")
+    session_token = auth_data.get("session_token")
+    
+    if not email or not session_token:
+        raise HTTPException(status_code=400, detail="Geçersiz auth verisi")
+    
+    # Check if user exists, update or create
+    existing_user = await db.auth_users.find_one({"email": email}, {"_id": 0})
+    
+    if existing_user:
+        user_id = existing_user["user_id"]
+        # Update user info
+        await db.auth_users.update_one(
+            {"email": email},
+            {"$set": {
+                "name": name,
+                "picture": picture,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    else:
+        # Create new user
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        new_user = {
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "role": "admin",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.auth_users.insert_one(new_user)
+        await log_activity("CREATE", "auth_user", user_id, f"Yeni kullanıcı giriş yaptı: {name}")
+    
+    # Store session
+    session_doc = {
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Remove old sessions for this user
+    await db.user_sessions.delete_many({"user_id": user_id})
+    await db.user_sessions.insert_one(session_doc)
+    
+    # Set httpOnly cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60  # 7 days
+    )
+    
+    await log_activity("LOGIN", "auth", user_id, f"Kullanıcı giriş yaptı: {name}")
+    
+    return {
+        "user_id": user_id,
+        "email": email,
+        "name": name,
+        "picture": picture,
+        "role": "admin"
+    }
+
+@api_router.get("/auth/me")
+async def get_me(request: Request, session_token: Optional[str] = Cookie(default=None)):
+    """Get current authenticated user"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Oturum açmanız gerekiyor")
+    
+    return {
+        "user_id": user.user_id,
+        "email": user.email,
+        "name": user.name,
+        "picture": user.picture,
+        "role": user.role
+    }
+
+@api_router.post("/auth/logout")
+async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(default=None)):
+    """Logout and clear session"""
+    token = session_token
+    
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if token:
+        # Get user info before deleting session
+        session_doc = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+        if session_doc:
+            user_doc = await db.auth_users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
+            if user_doc:
+                await log_activity("LOGOUT", "auth", session_doc["user_id"], f"Kullanıcı çıkış yaptı: {user_doc.get('name')}")
+        
+        # Delete session
+        await db.user_sessions.delete_many({"session_token": token})
+    
+    # Clear cookie
+    response.delete_cookie(
+        key="session_token",
+        path="/",
+        secure=True,
+        samesite="none"
+    )
+    
+    return {"message": "Başarıyla çıkış yapıldı"}
+
 # ============ DASHBOARD STATS ============
 
 @api_router.get("/dashboard/stats")
