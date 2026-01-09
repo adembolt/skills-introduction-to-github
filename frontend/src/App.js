@@ -1947,6 +1947,9 @@ function App() {
 
   // Initial data load and seed
   useEffect(() => {
+    // Only load data if authenticated
+    if (!isAuthenticated) return;
+    
     const initData = async () => {
       setLoading(true);
       try {
@@ -1971,7 +1974,7 @@ function App() {
     };
     
     initData();
-  }, [fetchStats, fetchUsers, fetchProducts, fetchPages, fetchOrders, fetchCategories, fetchActivityLogs, fetchSettings]);
+  }, [isAuthenticated, fetchStats, fetchUsers, fetchProducts, fetchPages, fetchOrders, fetchCategories, fetchActivityLogs, fetchSettings]);
 
   // CRUD operations
   const userOps = {
