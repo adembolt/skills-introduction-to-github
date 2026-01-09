@@ -1636,25 +1636,29 @@ async def get_all_content():
 @api_router.post("/seed-data")
 async def seed_data():
     """Seed the database with sample data"""
-    # Check if data already exists
+    # Check if data already exists - check multiple collections
     existing_users = await db.users.count_documents({})
-    if existing_users > 0:
+    existing_services = await db.service_cards.count_documents({})
+    
+    if existing_users > 0 and existing_services > 0:
         return {"message": "Veriler zaten mevcut"}
     
-    # Sample Users
-    sample_users = [
-        {"name": "Ahmet Yılmaz", "email": "ahmet@example.com", "role": "admin", "status": "active", "phone": "0532 111 2233"},
-        {"name": "Ayşe Demir", "email": "ayse@example.com", "role": "editor", "status": "active", "phone": "0533 222 3344"},
-        {"name": "Mehmet Kaya", "email": "mehmet@example.com", "role": "user", "status": "active", "phone": "0534 333 4455"},
-        {"name": "Fatma Çelik", "email": "fatma@example.com", "role": "user", "status": "inactive", "phone": "0535 444 5566"},
-        {"name": "Ali Öztürk", "email": "ali@example.com", "role": "user", "status": "active", "phone": "0536 555 6677"},
-    ]
-    
-    for user_data in sample_users:
-        user = User(**user_data)
-        doc = serialize_doc(user.model_dump())
-        doc["password_hash"] = "123456"
-        await db.users.insert_one(doc)
+    # Only seed what's missing
+    if existing_users == 0:
+        # Sample Users
+        sample_users = [
+            {"name": "Ahmet Yılmaz", "email": "ahmet@example.com", "role": "admin", "status": "active", "phone": "0532 111 2233"},
+            {"name": "Ayşe Demir", "email": "ayse@example.com", "role": "editor", "status": "active", "phone": "0533 222 3344"},
+            {"name": "Mehmet Kaya", "email": "mehmet@example.com", "role": "user", "status": "active", "phone": "0534 333 4455"},
+            {"name": "Fatma Çelik", "email": "fatma@example.com", "role": "user", "status": "inactive", "phone": "0535 444 5566"},
+            {"name": "Ali Öztürk", "email": "ali@example.com", "role": "user", "status": "active", "phone": "0536 555 6677"},
+        ]
+        
+        for user_data in sample_users:
+            user = User(**user_data)
+            doc = serialize_doc(user.model_dump())
+            doc["password_hash"] = "123456"
+            await db.users.insert_one(doc)
     
     # Sample Categories
     sample_categories = [
