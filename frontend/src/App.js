@@ -197,6 +197,22 @@ const AuthCallback = ({ onAuthSuccess }) => {
 
 // Sidebar Component
 const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, currentUser, onLogout }) => {
+  const [expandedMenu, setExpandedMenu] = useState(null);
+
+  const handleNavClick = (item) => {
+    if (item.submenu) {
+      setExpandedMenu(expandedMenu === item.id ? null : item.id);
+    } else {
+      setActiveTab(item.id);
+      setIsOpen(false);
+    }
+  };
+
+  const handleSubMenuClick = (subItem) => {
+    setActiveTab(subItem.id);
+    setIsOpen(false);
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -232,26 +248,50 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, currentUser, onLo
           </div>
           
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                data-testid={`nav-${item.id}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsOpen(false);
-                }}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  transition-colors duration-200
-                  ${activeTab === item.id 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'}
-                `}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </button>
+              <div key={item.id}>
+                <button
+                  data-testid={`nav-${item.id}`}
+                  onClick={() => handleNavClick(item)}
+                  className={`
+                    w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                    transition-colors duration-200
+                    ${activeTab === item.id || (item.submenu && item.submenu.some(s => s.id === activeTab))
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'}
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.submenu && (
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedMenu === item.id ? 'rotate-180' : ''}`} />
+                  )}
+                </button>
+                {item.submenu && expandedMenu === item.id && (
+                  <div className="ml-4 mt-1 space-y-1">
+                    {item.submenu.map((subItem) => (
+                      <button
+                        key={subItem.id}
+                        data-testid={`nav-${subItem.id}`}
+                        onClick={() => handleSubMenuClick(subItem)}
+                        className={`
+                          w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                          transition-colors duration-200
+                          ${activeTab === subItem.id 
+                            ? 'bg-blue-500/50 text-white' 
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'}
+                        `}
+                      >
+                        <ChevronRight className="w-3 h-3" />
+                        <span>{subItem.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
           
