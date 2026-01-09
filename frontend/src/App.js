@@ -1818,6 +1818,10 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Auth states
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = checking, true/false = result
+  const [currentUser, setCurrentUser] = useState(null);
+  
   // Data states
   const [stats, setStats] = useState({});
   const [users, setUsers] = useState([]);
@@ -1827,6 +1831,46 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [settings, setSettings] = useState({});
+
+  // Check for session_id in URL (synchronous check to prevent race conditions)
+  const hash = window.location.hash;
+  const hasSessionId = hash?.includes('session_id=');
+
+  // Auth success handler
+  const handleAuthSuccess = useCallback((userData) => {
+    setCurrentUser(userData);
+    setIsAuthenticated(true);
+  }, []);
+
+  // Logout handler
+  const handleLogout = useCallback(async () => {
+    try {
+      await api.post("/auth/logout", {});
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    window.location.href = '/login';
+  }, []);
+
+  // Check auth status on mount
+  useEffect(() => {
+    // Skip if we're processing session_id
+    if (hasSessionId) return;
+    
+    const checkAuth = async () => {
+      try {
+        const userData = await api.get("/auth/me");
+        setCurrentUser(userData);
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuth();
+  }, [hasSessionId]);
 
   // Fetch functions
   const fetchStats = useCallback(async () => {
