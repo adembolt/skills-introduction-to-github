@@ -182,7 +182,7 @@ const AuthCallback = ({ onAuthSuccess }) => {
 // ============ COMPONENTS ============
 
 // Sidebar Component
-const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, currentUser, onLogout }) => {
   return (
     <>
       {/* Mobile Overlay */}
@@ -241,16 +241,32 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
             ))}
           </nav>
           
-          {/* Footer */}
+          {/* Footer with User Info */}
           <div className="p-4 border-t border-slate-700">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4" />
+              {currentUser?.picture ? (
+                <img 
+                  src={currentUser.picture} 
+                  alt={currentUser.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{currentUser?.name || 'Admin'}</p>
+                <p className="text-xs text-slate-400 truncate">{currentUser?.email || 'admin@site.com'}</p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Admin</p>
-                <p className="text-xs text-slate-400">admin@site.com</p>
-              </div>
+              <button 
+                onClick={onLogout}
+                className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors"
+                title="Çıkış Yap"
+                data-testid="logout-btn"
+              >
+                <LogOut className="w-4 h-4 text-slate-400" />
+              </button>
             </div>
           </div>
         </div>
