@@ -1178,6 +1178,459 @@ async def get_activity_logs(
     logs = await db.activity_logs.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     return [deserialize_datetime(log) for log in logs]
 
+# ============ SITE CONTENT MANAGEMENT ============
+
+# Hero Section
+@api_router.get("/content/hero", response_model=HeroSection)
+async def get_hero_section():
+    """Get hero section content"""
+    hero = await db.hero_section.find_one({"id": "hero_section"}, {"_id": 0})
+    if not hero:
+        default_hero = HeroSection()
+        doc = serialize_doc(default_hero.model_dump())
+        await db.hero_section.insert_one(doc)
+        return default_hero
+    return deserialize_datetime(hero)
+
+@api_router.put("/content/hero", response_model=HeroSection)
+async def update_hero_section(hero_data: HeroSectionUpdate):
+    """Update hero section"""
+    update_data = {k: v for k, v in hero_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.hero_section.update_one(
+        {"id": "hero_section"},
+        {"$set": update_data},
+        upsert=True
+    )
+    await log_activity("UPDATE", "hero", "hero_section", "Hero bölümü güncellendi")
+    
+    updated = await db.hero_section.find_one({"id": "hero_section"}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+# Service Cards
+@api_router.get("/content/services", response_model=List[ServiceCard])
+async def get_services():
+    """Get all service cards"""
+    services = await db.service_cards.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(s) for s in services]
+
+@api_router.post("/content/services", response_model=ServiceCard)
+async def create_service(service_data: ServiceCardCreate):
+    """Create a service card"""
+    service = ServiceCard(**service_data.model_dump())
+    doc = serialize_doc(service.model_dump())
+    await db.service_cards.insert_one(doc)
+    await log_activity("CREATE", "service", service.id, f"Yeni hizmet oluşturuldu: {service.title}")
+    return service
+
+@api_router.put("/content/services/{service_id}", response_model=ServiceCard)
+async def update_service(service_id: str, service_data: ServiceCardUpdate):
+    """Update a service card"""
+    existing = await db.service_cards.find_one({"id": service_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Hizmet bulunamadı")
+    
+    update_data = {k: v for k, v in service_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.service_cards.update_one({"id": service_id}, {"$set": update_data})
+    await log_activity("UPDATE", "service", service_id, f"Hizmet güncellendi: {existing.get('title')}")
+    
+    updated = await db.service_cards.find_one({"id": service_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/services/{service_id}")
+async def delete_service(service_id: str):
+    """Delete a service card"""
+    existing = await db.service_cards.find_one({"id": service_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Hizmet bulunamadı")
+    
+    await db.service_cards.delete_one({"id": service_id})
+    await log_activity("DELETE", "service", service_id, f"Hizmet silindi: {existing.get('title')}")
+    return {"message": "Hizmet başarıyla silindi"}
+
+# Pricing Cards
+@api_router.get("/content/pricing", response_model=List[PricingCard])
+async def get_pricing():
+    """Get all pricing cards"""
+    pricing = await db.pricing_cards.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(p) for p in pricing]
+
+@api_router.post("/content/pricing", response_model=PricingCard)
+async def create_pricing(pricing_data: PricingCardCreate):
+    """Create a pricing card"""
+    pricing = PricingCard(**pricing_data.model_dump())
+    doc = serialize_doc(pricing.model_dump())
+    await db.pricing_cards.insert_one(doc)
+    await log_activity("CREATE", "pricing", pricing.id, f"Yeni fiyat kartı oluşturuldu: {pricing.name}")
+    return pricing
+
+@api_router.put("/content/pricing/{pricing_id}", response_model=PricingCard)
+async def update_pricing(pricing_id: str, pricing_data: PricingCardUpdate):
+    """Update a pricing card"""
+    existing = await db.pricing_cards.find_one({"id": pricing_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Fiyat kartı bulunamadı")
+    
+    update_data = {k: v for k, v in pricing_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.pricing_cards.update_one({"id": pricing_id}, {"$set": update_data})
+    await log_activity("UPDATE", "pricing", pricing_id, f"Fiyat kartı güncellendi: {existing.get('name')}")
+    
+    updated = await db.pricing_cards.find_one({"id": pricing_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/pricing/{pricing_id}")
+async def delete_pricing(pricing_id: str):
+    """Delete a pricing card"""
+    existing = await db.pricing_cards.find_one({"id": pricing_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Fiyat kartı bulunamadı")
+    
+    await db.pricing_cards.delete_one({"id": pricing_id})
+    await log_activity("DELETE", "pricing", pricing_id, f"Fiyat kartı silindi: {existing.get('name')}")
+    return {"message": "Fiyat kartı başarıyla silindi"}
+
+# Testimonials
+@api_router.get("/content/testimonials", response_model=List[Testimonial])
+async def get_testimonials():
+    """Get all testimonials"""
+    testimonials = await db.testimonials.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(t) for t in testimonials]
+
+@api_router.post("/content/testimonials", response_model=Testimonial)
+async def create_testimonial(testimonial_data: TestimonialCreate):
+    """Create a testimonial"""
+    testimonial = Testimonial(**testimonial_data.model_dump())
+    doc = serialize_doc(testimonial.model_dump())
+    await db.testimonials.insert_one(doc)
+    await log_activity("CREATE", "testimonial", testimonial.id, f"Yeni referans oluşturuldu: {testimonial.name}")
+    return testimonial
+
+@api_router.put("/content/testimonials/{testimonial_id}", response_model=Testimonial)
+async def update_testimonial(testimonial_id: str, testimonial_data: TestimonialUpdate):
+    """Update a testimonial"""
+    existing = await db.testimonials.find_one({"id": testimonial_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Referans bulunamadı")
+    
+    update_data = {k: v for k, v in testimonial_data.model_dump().items() if v is not None}
+    
+    await db.testimonials.update_one({"id": testimonial_id}, {"$set": update_data})
+    await log_activity("UPDATE", "testimonial", testimonial_id, f"Referans güncellendi: {existing.get('name')}")
+    
+    updated = await db.testimonials.find_one({"id": testimonial_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/testimonials/{testimonial_id}")
+async def delete_testimonial(testimonial_id: str):
+    """Delete a testimonial"""
+    existing = await db.testimonials.find_one({"id": testimonial_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Referans bulunamadı")
+    
+    await db.testimonials.delete_one({"id": testimonial_id})
+    await log_activity("DELETE", "testimonial", testimonial_id, f"Referans silindi: {existing.get('name')}")
+    return {"message": "Referans başarıyla silindi"}
+
+# Banners
+@api_router.get("/content/banners", response_model=List[Banner])
+async def get_banners():
+    """Get all banners"""
+    banners = await db.banners.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(b) for b in banners]
+
+@api_router.post("/content/banners", response_model=Banner)
+async def create_banner(banner_data: BannerCreate):
+    """Create a banner"""
+    banner = Banner(**banner_data.model_dump())
+    doc = serialize_doc(banner.model_dump())
+    await db.banners.insert_one(doc)
+    await log_activity("CREATE", "banner", banner.id, f"Yeni banner oluşturuldu: {banner.title}")
+    return banner
+
+@api_router.put("/content/banners/{banner_id}", response_model=Banner)
+async def update_banner(banner_id: str, banner_data: BannerUpdate):
+    """Update a banner"""
+    existing = await db.banners.find_one({"id": banner_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Banner bulunamadı")
+    
+    update_data = {k: v for k, v in banner_data.model_dump().items() if v is not None}
+    
+    await db.banners.update_one({"id": banner_id}, {"$set": update_data})
+    await log_activity("UPDATE", "banner", banner_id, f"Banner güncellendi: {existing.get('title')}")
+    
+    updated = await db.banners.find_one({"id": banner_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/banners/{banner_id}")
+async def delete_banner(banner_id: str):
+    """Delete a banner"""
+    existing = await db.banners.find_one({"id": banner_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Banner bulunamadı")
+    
+    await db.banners.delete_one({"id": banner_id})
+    await log_activity("DELETE", "banner", banner_id, f"Banner silindi: {existing.get('title')}")
+    return {"message": "Banner başarıyla silindi"}
+
+# Media Library
+@api_router.get("/content/media", response_model=List[MediaItem])
+async def get_media(category: Optional[str] = None):
+    """Get all media items"""
+    query = {}
+    if category:
+        query["category"] = category
+    media = await db.media.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return [deserialize_datetime(m) for m in media]
+
+@api_router.post("/content/media", response_model=MediaItem)
+async def create_media(media_data: MediaItemCreate):
+    """Create a media item"""
+    media = MediaItem(**media_data.model_dump())
+    doc = serialize_doc(media.model_dump())
+    await db.media.insert_one(doc)
+    await log_activity("CREATE", "media", media.id, f"Yeni medya eklendi: {media.name}")
+    return media
+
+@api_router.delete("/content/media/{media_id}")
+async def delete_media(media_id: str):
+    """Delete a media item"""
+    existing = await db.media.find_one({"id": media_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Medya bulunamadı")
+    
+    await db.media.delete_one({"id": media_id})
+    await log_activity("DELETE", "media", media_id, f"Medya silindi: {existing.get('name')}")
+    return {"message": "Medya başarıyla silindi"}
+
+# Menu Items
+@api_router.get("/content/menu", response_model=List[MenuItem])
+async def get_menu():
+    """Get all menu items"""
+    menu = await db.menu_items.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(m) for m in menu]
+
+@api_router.post("/content/menu", response_model=MenuItem)
+async def create_menu_item(menu_data: MenuItemCreate):
+    """Create a menu item"""
+    menu_item = MenuItem(**menu_data.model_dump())
+    doc = serialize_doc(menu_item.model_dump())
+    await db.menu_items.insert_one(doc)
+    await log_activity("CREATE", "menu", menu_item.id, f"Yeni menü öğesi oluşturuldu: {menu_item.label}")
+    return menu_item
+
+@api_router.put("/content/menu/{menu_id}", response_model=MenuItem)
+async def update_menu_item(menu_id: str, menu_data: MenuItemUpdate):
+    """Update a menu item"""
+    existing = await db.menu_items.find_one({"id": menu_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Menü öğesi bulunamadı")
+    
+    update_data = {k: v for k, v in menu_data.model_dump().items() if v is not None}
+    
+    await db.menu_items.update_one({"id": menu_id}, {"$set": update_data})
+    await log_activity("UPDATE", "menu", menu_id, f"Menü öğesi güncellendi: {existing.get('label')}")
+    
+    updated = await db.menu_items.find_one({"id": menu_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/menu/{menu_id}")
+async def delete_menu_item(menu_id: str):
+    """Delete a menu item"""
+    existing = await db.menu_items.find_one({"id": menu_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Menü öğesi bulunamadı")
+    
+    await db.menu_items.delete_one({"id": menu_id})
+    await log_activity("DELETE", "menu", menu_id, f"Menü öğesi silindi: {existing.get('label')}")
+    return {"message": "Menü öğesi başarıyla silindi"}
+
+# Section Content
+@api_router.get("/content/sections", response_model=List[SectionContent])
+async def get_sections():
+    """Get all section contents"""
+    sections = await db.section_contents.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(s) for s in sections]
+
+@api_router.get("/content/sections/{section_key}", response_model=SectionContent)
+async def get_section(section_key: str):
+    """Get a specific section by key"""
+    section = await db.section_contents.find_one({"section_key": section_key}, {"_id": 0})
+    if not section:
+        raise HTTPException(status_code=404, detail="Bölüm bulunamadı")
+    return deserialize_datetime(section)
+
+@api_router.post("/content/sections", response_model=SectionContent)
+async def create_section(section_data: SectionContentCreate):
+    """Create a section content"""
+    # Check if section_key exists
+    existing = await db.section_contents.find_one({"section_key": section_data.section_key})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu bölüm anahtarı zaten kullanılıyor")
+    
+    section = SectionContent(**section_data.model_dump())
+    doc = serialize_doc(section.model_dump())
+    await db.section_contents.insert_one(doc)
+    await log_activity("CREATE", "section", section.id, f"Yeni bölüm oluşturuldu: {section.title}")
+    return section
+
+@api_router.put("/content/sections/{section_id}", response_model=SectionContent)
+async def update_section(section_id: str, section_data: SectionContentUpdate):
+    """Update a section content"""
+    existing = await db.section_contents.find_one({"id": section_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Bölüm bulunamadı")
+    
+    update_data = {k: v for k, v in section_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.section_contents.update_one({"id": section_id}, {"$set": update_data})
+    await log_activity("UPDATE", "section", section_id, f"Bölüm güncellendi: {existing.get('title')}")
+    
+    updated = await db.section_contents.find_one({"id": section_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/sections/{section_id}")
+async def delete_section(section_id: str):
+    """Delete a section content"""
+    existing = await db.section_contents.find_one({"id": section_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Bölüm bulunamadı")
+    
+    await db.section_contents.delete_one({"id": section_id})
+    await log_activity("DELETE", "section", section_id, f"Bölüm silindi: {existing.get('title')}")
+    return {"message": "Bölüm başarıyla silindi"}
+
+# Chart Data
+@api_router.get("/content/charts", response_model=List[ChartData])
+async def get_charts():
+    """Get all chart data"""
+    charts = await db.chart_data.find({}, {"_id": 0}).to_list(100)
+    return [deserialize_datetime(c) for c in charts]
+
+@api_router.get("/content/charts/{chart_key}", response_model=ChartData)
+async def get_chart(chart_key: str):
+    """Get a specific chart by key"""
+    chart = await db.chart_data.find_one({"chart_key": chart_key}, {"_id": 0})
+    if not chart:
+        raise HTTPException(status_code=404, detail="Grafik bulunamadı")
+    return deserialize_datetime(chart)
+
+@api_router.post("/content/charts", response_model=ChartData)
+async def create_chart(chart_data: ChartDataCreate):
+    """Create chart data"""
+    existing = await db.chart_data.find_one({"chart_key": chart_data.chart_key})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu grafik anahtarı zaten kullanılıyor")
+    
+    chart = ChartData(**chart_data.model_dump())
+    doc = serialize_doc(chart.model_dump())
+    await db.chart_data.insert_one(doc)
+    await log_activity("CREATE", "chart", chart.id, f"Yeni grafik oluşturuldu: {chart.title}")
+    return chart
+
+@api_router.put("/content/charts/{chart_id}", response_model=ChartData)
+async def update_chart(chart_id: str, chart_data: ChartDataUpdate):
+    """Update chart data"""
+    existing = await db.chart_data.find_one({"id": chart_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Grafik bulunamadı")
+    
+    update_data = {k: v for k, v in chart_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.chart_data.update_one({"id": chart_id}, {"$set": update_data})
+    await log_activity("UPDATE", "chart", chart_id, f"Grafik güncellendi: {existing.get('title')}")
+    
+    updated = await db.chart_data.find_one({"id": chart_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/charts/{chart_id}")
+async def delete_chart(chart_id: str):
+    """Delete chart data"""
+    existing = await db.chart_data.find_one({"id": chart_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Grafik bulunamadı")
+    
+    await db.chart_data.delete_one({"id": chart_id})
+    await log_activity("DELETE", "chart", chart_id, f"Grafik silindi: {existing.get('title')}")
+    return {"message": "Grafik başarıyla silindi"}
+
+# FAQs
+@api_router.get("/content/faqs", response_model=List[FAQ])
+async def get_faqs():
+    """Get all FAQs"""
+    faqs = await db.faqs.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return [deserialize_datetime(f) for f in faqs]
+
+@api_router.post("/content/faqs", response_model=FAQ)
+async def create_faq(faq_data: FAQCreate):
+    """Create a FAQ"""
+    faq = FAQ(**faq_data.model_dump())
+    doc = serialize_doc(faq.model_dump())
+    await db.faqs.insert_one(doc)
+    await log_activity("CREATE", "faq", faq.id, f"Yeni SSS oluşturuldu")
+    return faq
+
+@api_router.put("/content/faqs/{faq_id}", response_model=FAQ)
+async def update_faq(faq_id: str, faq_data: FAQUpdate):
+    """Update a FAQ"""
+    existing = await db.faqs.find_one({"id": faq_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="SSS bulunamadı")
+    
+    update_data = {k: v for k, v in faq_data.model_dump().items() if v is not None}
+    
+    await db.faqs.update_one({"id": faq_id}, {"$set": update_data})
+    await log_activity("UPDATE", "faq", faq_id, "SSS güncellendi")
+    
+    updated = await db.faqs.find_one({"id": faq_id}, {"_id": 0})
+    return deserialize_datetime(updated)
+
+@api_router.delete("/content/faqs/{faq_id}")
+async def delete_faq(faq_id: str):
+    """Delete a FAQ"""
+    existing = await db.faqs.find_one({"id": faq_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="SSS bulunamadı")
+    
+    await db.faqs.delete_one({"id": faq_id})
+    await log_activity("DELETE", "faq", faq_id, "SSS silindi")
+    return {"message": "SSS başarıyla silindi"}
+
+# Get all site content at once (for frontend rendering)
+@api_router.get("/content/all")
+async def get_all_content():
+    """Get all site content for frontend"""
+    hero = await db.hero_section.find_one({"id": "hero_section"}, {"_id": 0})
+    services = await db.service_cards.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    pricing = await db.pricing_cards.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    testimonials = await db.testimonials.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    banners = await db.banners.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    menu = await db.menu_items.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    sections = await db.section_contents.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    charts = await db.chart_data.find({"is_active": True}, {"_id": 0}).to_list(100)
+    faqs = await db.faqs.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    settings = await db.settings.find_one({"id": "site_settings"}, {"_id": 0})
+    
+    return {
+        "hero": hero or HeroSection().model_dump(),
+        "services": services,
+        "pricing": pricing,
+        "testimonials": testimonials,
+        "banners": banners,
+        "menu": menu,
+        "sections": sections,
+        "charts": charts,
+        "faqs": faqs,
+        "settings": settings or SiteSettings().model_dump()
+    }
+
 # ============ SEED DATA ============
 
 @api_router.post("/seed-data")
