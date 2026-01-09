@@ -2144,6 +2144,21 @@ function App() {
             onUpdate={settingsOps.update}
           />
         );
+      // Site Content Management Pages
+      case "hero":
+        return <HeroManager api={api} />;
+      case "services":
+        return <ServicesManager api={api} />;
+      case "pricing":
+        return <PricingManager api={api} />;
+      case "testimonials":
+        return <TestimonialsManager api={api} />;
+      case "banners":
+        return <BannersManager api={api} />;
+      case "media":
+        return <MediaLibrary api={api} />;
+      case "faqs":
+        return <FAQManager api={api} />;
       default:
         return <DashboardPage stats={stats} loading={loading} onRefresh={fetchStats} />;
     }
