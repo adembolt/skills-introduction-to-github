@@ -2095,6 +2095,28 @@ function App() {
     }
   };
 
+  // Handle session_id from URL (Auth callback)
+  if (hasSessionId) {
+    return <AuthCallback onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  // Show loading while checking auth
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-slate-600">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-100">
       <Toaster position="top-right" richColors />
@@ -2106,6 +2128,8 @@ function App() {
           setActiveTab={setActiveTab}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
         
         {/* Main Content */}
