@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
 import { 
@@ -26,22 +26,22 @@ import { Toaster, toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// API Helper
+// API Helper with credentials
 const api = {
   get: async (url) => {
-    const response = await axios.get(`${API}${url}`);
+    const response = await axios.get(`${API}${url}`, { withCredentials: true });
     return response.data;
   },
   post: async (url, data) => {
-    const response = await axios.post(`${API}${url}`, data);
+    const response = await axios.post(`${API}${url}`, data, { withCredentials: true });
     return response.data;
   },
   put: async (url, data) => {
-    const response = await axios.put(`${API}${url}`, data);
+    const response = await axios.put(`${API}${url}`, data, { withCredentials: true });
     return response.data;
   },
   delete: async (url) => {
-    const response = await axios.delete(`${API}${url}`);
+    const response = await axios.delete(`${API}${url}`, { withCredentials: true });
     return response.data;
   }
 };
