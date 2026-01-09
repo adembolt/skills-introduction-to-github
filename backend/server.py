@@ -26,6 +26,69 @@ app = FastAPI(title="Admin Dashboard API", version="1.0.0")
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# ============ AUTH MODELS ============
+class AuthUser(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    role: str = "admin"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SessionData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    session_token: str
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ============ AUTH HELPER FUNCTIONS ============
+async def get_current_user(request: Request, session_token: Optional[str] = Cookie(default=None)) -> Optional[AuthUser]:
+    """Get current authenticated user from session token"""
+    token = session_token
+    
+    # Fallback to Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if not token:
+        return None
+    
+    # Find session in database
+    session_doc = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session_doc:
+        return None
+    
+    # Check expiry with timezone awareness
+    expires_at = session_doc.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        return None
+    
+    # Get user
+    user_doc = await db.auth_users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
+    if not user_doc:
+        return None
+    
+    # Handle datetime fields
+    if "created_at" in user_doc and isinstance(user_doc["created_at"], str):
+        user_doc["created_at"] = datetime.fromisoformat(user_doc["created_at"])
+    
+    return AuthUser(**user_doc)
+
+async def require_auth(request: Request, session_token: Optional[str] = Cookie(default=None)) -> AuthUser:
+    """Require authentication - raises 401 if not authenticated"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Oturum açmanız gerekiyor")
+    return user
+
 # ============ ENUMS ============
 class UserRole(str, Enum):
     ADMIN = "admin"
