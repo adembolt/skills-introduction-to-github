@@ -261,6 +261,299 @@ class SiteSettingsUpdate(BaseModel):
     primary_color: Optional[str] = None
     secondary_color: Optional[str] = None
 
+# ============ SITE CONTENT MODELS ============
+
+# Hero Section Model
+class HeroSection(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "hero_section"
+    title: str = "Hoş Geldiniz"
+    subtitle: str = "Profesyonel çözümler sunuyoruz"
+    description: str = "İşletmenizi büyütmek için en iyi hizmetleri sağlıyoruz."
+    button_text: str = "Hemen Başla"
+    button_link: str = "#contact"
+    background_image: Optional[str] = None
+    background_color: str = "#1e293b"
+    text_color: str = "#ffffff"
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class HeroSectionUpdate(BaseModel):
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    description: Optional[str] = None
+    button_text: Optional[str] = None
+    button_link: Optional[str] = None
+    background_image: Optional[str] = None
+    background_color: Optional[str] = None
+    text_color: Optional[str] = None
+    is_active: Optional[bool] = None
+
+# Service/Feature Card Model
+class ServiceCard(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    icon: str = "star"  # lucide icon name
+    image: Optional[str] = None
+    link: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ServiceCardCreate(BaseModel):
+    title: str
+    description: str
+    icon: str = "star"
+    image: Optional[str] = None
+    link: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+
+class ServiceCardUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    image: Optional[str] = None
+    link: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+# Pricing Card Model
+class PricingCard(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    price: float
+    currency: str = "₺"
+    period: str = "ay"  # ay, yıl, tek seferlik
+    description: str
+    features: List[str] = []
+    is_popular: bool = False
+    button_text: str = "Satın Al"
+    button_link: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PricingCardCreate(BaseModel):
+    name: str
+    price: float
+    currency: str = "₺"
+    period: str = "ay"
+    description: str
+    features: List[str] = []
+    is_popular: bool = False
+    button_text: str = "Satın Al"
+    button_link: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+
+class PricingCardUpdate(BaseModel):
+    name: Optional[str] = None
+    price: Optional[float] = None
+    currency: Optional[str] = None
+    period: Optional[str] = None
+    description: Optional[str] = None
+    features: Optional[List[str]] = None
+    is_popular: Optional[bool] = None
+    button_text: Optional[str] = None
+    button_link: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+# Testimonial Model
+class Testimonial(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    title: str  # Job title / company
+    content: str
+    avatar: Optional[str] = None
+    rating: int = 5
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TestimonialCreate(BaseModel):
+    name: str
+    title: str
+    content: str
+    avatar: Optional[str] = None
+    rating: int = 5
+    order: int = 0
+    is_active: bool = True
+
+class TestimonialUpdate(BaseModel):
+    name: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    avatar: Optional[str] = None
+    rating: Optional[int] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+# Banner/Slider Model
+class Banner(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    subtitle: Optional[str] = None
+    image: str
+    link: Optional[str] = None
+    button_text: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class BannerCreate(BaseModel):
+    title: str
+    subtitle: Optional[str] = None
+    image: str
+    link: Optional[str] = None
+    button_text: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+
+class BannerUpdate(BaseModel):
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    image: Optional[str] = None
+    link: Optional[str] = None
+    button_text: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+# Media/Gallery Model
+class MediaItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    url: str
+    type: str = "image"  # image, video, document
+    alt_text: Optional[str] = None
+    category: Optional[str] = None
+    size: Optional[int] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MediaItemCreate(BaseModel):
+    name: str
+    url: str
+    type: str = "image"
+    alt_text: Optional[str] = None
+    category: Optional[str] = None
+    size: Optional[int] = None
+
+# Menu/Navigation Model
+class MenuItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    label: str
+    link: str
+    parent_id: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    open_in_new_tab: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MenuItemCreate(BaseModel):
+    label: str
+    link: str
+    parent_id: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    open_in_new_tab: bool = False
+
+class MenuItemUpdate(BaseModel):
+    label: Optional[str] = None
+    link: Optional[str] = None
+    parent_id: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+    open_in_new_tab: Optional[bool] = None
+
+# Section Content Model (for any text section)
+class SectionContent(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    section_key: str  # unique key like "about_us", "mission", "vision"
+    title: str
+    content: str
+    image: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SectionContentCreate(BaseModel):
+    section_key: str
+    title: str
+    content: str
+    image: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+
+class SectionContentUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    image: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+# Chart Data Model
+class ChartData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    chart_key: str  # unique key like "monthly_sales", "visitors"
+    title: str
+    chart_type: str = "bar"  # bar, line, pie, area
+    data: List[Dict[str, Any]] = []
+    colors: List[str] = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChartDataCreate(BaseModel):
+    chart_key: str
+    title: str
+    chart_type: str = "bar"
+    data: List[Dict[str, Any]] = []
+    colors: List[str] = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
+    is_active: bool = True
+
+class ChartDataUpdate(BaseModel):
+    title: Optional[str] = None
+    chart_type: Optional[str] = None
+    data: Optional[List[Dict[str, Any]]] = None
+    colors: Optional[List[str]] = None
+    is_active: Optional[bool] = None
+
+# FAQ Model
+class FAQ(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    question: str
+    answer: str
+    category: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FAQCreate(BaseModel):
+    question: str
+    answer: str
+    category: Optional[str] = None
+    order: int = 0
+    is_active: bool = True
+
+class FAQUpdate(BaseModel):
+    question: Optional[str] = None
+    answer: Optional[str] = None
+    category: Optional[str] = None
+    order: Optional[int] = None
+    is_active: Optional[bool] = None
+
 # Activity Log Model
 class ActivityLog(BaseModel):
     model_config = ConfigDict(extra="ignore")
