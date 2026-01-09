@@ -46,9 +46,23 @@ const api = {
   }
 };
 
+import { 
+  HeroManager, ServicesManager, PricingManager, TestimonialsManager, 
+  BannersManager, MediaLibrary, FAQManager 
+} from "@/pages/ContentManagers";
+
 // Sidebar Navigation Items
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "site-content", label: "Site İçerikleri", icon: Layers, submenu: [
+    { id: "hero", label: "Hero Bölümü" },
+    { id: "services", label: "Hizmetler" },
+    { id: "pricing", label: "Fiyatlandırma" },
+    { id: "testimonials", label: "Müşteri Yorumları" },
+    { id: "banners", label: "Bannerlar" },
+    { id: "media", label: "Medya Kütüphanesi" },
+    { id: "faqs", label: "SSS" },
+  ]},
   { id: "users", label: "Kullanıcılar", icon: Users },
   { id: "products", label: "Ürünler", icon: Package },
   { id: "pages", label: "Sayfalar", icon: FileText },
