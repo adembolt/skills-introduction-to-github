@@ -2346,7 +2346,7 @@ function App() {
 
   // Show login page if not authenticated
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <LoginPage onLoginSuccess={handleAuthSuccess} />;
   }
 
   return (
