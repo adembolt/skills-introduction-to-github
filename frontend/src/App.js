@@ -277,6 +277,10 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, currentUser, onLo
   const [expandedMenu, setExpandedMenu] = useState(null);
 
   const handleNavClick = (item) => {
+    if (item.isExternal) {
+      window.open("/", "_blank");
+      return;
+    }
     if (item.submenu) {
       setExpandedMenu(expandedMenu === item.id ? null : item.id);
     } else {
