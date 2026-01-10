@@ -1966,84 +1966,22 @@ async def seed_data():
         pricing = PricingCard(**p)
         await db.pricing_cards.insert_one(serialize_doc(pricing.model_dump()))
     
-    # Testimonials
+    # Testimonials - Spa Reviews
     sample_testimonials = [
-        {"name": "Mehmet Yıldız", "title": "CEO, TechStart", "content": "Harika bir ekip! Web sitemiz sayesinde satışlarımız %200 arttı.", "rating": 5, "order": 1},
-        {"name": "Ayşe Kara", "title": "Pazarlama Müdürü, ModaHouse", "content": "Profesyonel yaklaşımları ve zamanında teslimatları için teşekkürler.", "rating": 5, "order": 2},
-        {"name": "Ali Demir", "title": "Kurucu, FitLife", "content": "E-ticaret sitemiz mükemmel çalışıyor. Kesinlikle tavsiye ederim.", "rating": 5, "order": 3},
+        {"name": "Seda Y.", "title": "Düzenli Müşteri", "content": "Bamboo Beauty'de kendimi her zaman özel hissediyorum. Cilt bakımı sonrası cildim inanılmaz parlak!", "rating": 5, "order": 1},
+        {"name": "Elif K.", "title": "2 Yıllık Müşteri", "content": "Lazer epilasyon için en iyi merkez. Profesyonel ekip ve son teknoloji cihazlar.", "rating": 5, "order": 2},
+        {"name": "Merve A.", "title": "VIP Müşteri", "content": "Masaj terapisi muhteşem! Stresimi attım ve kendimi yenilenmiş hissettim. Kesinlikle tavsiye ederim.", "rating": 5, "order": 3},
     ]
     for t in sample_testimonials:
         testimonial = Testimonial(**t)
         await db.testimonials.insert_one(serialize_doc(testimonial.model_dump()))
     
-    # Banners
-    sample_banners = [
-        {"title": "Yaz İndirimi", "subtitle": "Tüm hizmetlerde %20 indirim!", "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200", "button_text": "Fırsatı Yakala", "order": 1},
-        {"title": "Yeni Özellikler", "subtitle": "AI destekli chatbot hizmeti başladı", "image": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200", "button_text": "Keşfet", "order": 2},
-    ]
-    for b in sample_banners:
-        banner = Banner(**b)
-        await db.banners.insert_one(serialize_doc(banner.model_dump()))
-    
-    # Menu Items
-    sample_menu = [
-        {"label": "Ana Sayfa", "link": "/", "order": 1},
-        {"label": "Hizmetler", "link": "/services", "order": 2},
-        {"label": "Fiyatlar", "link": "/pricing", "order": 3},
-        {"label": "Hakkımızda", "link": "/about", "order": 4},
-        {"label": "İletişim", "link": "/contact", "order": 5},
-    ]
-    for m in sample_menu:
-        menu_item = MenuItem(**m)
-        await db.menu_items.insert_one(serialize_doc(menu_item.model_dump()))
-    
-    # Section Contents
-    sample_sections = [
-        {"section_key": "about_us", "title": "Hakkımızda", "content": "10 yılı aşkın tecrübemizle dijital dünyada işletmelere rehberlik ediyoruz. Müşteri memnuniyeti odaklı yaklaşımımızla sektörde öncü konumdayız.", "order": 1},
-        {"section_key": "mission", "title": "Misyonumuz", "content": "İşletmelerin dijital dönüşümünü hızlandırmak ve rekabet güçlerini artırmak için yenilikçi çözümler sunmak.", "order": 2},
-        {"section_key": "vision", "title": "Vizyonumuz", "content": "Türkiye'nin lider dijital ajansı olarak global pazarda söz sahibi olmak.", "order": 3},
-    ]
-    for s in sample_sections:
-        section = SectionContent(**s)
-        await db.section_contents.insert_one(serialize_doc(section.model_dump()))
-    
-    # Chart Data
-    sample_charts = [
-        {
-            "chart_key": "monthly_visitors",
-            "title": "Aylık Ziyaretçi",
-            "chart_type": "line",
-            "data": [
-                {"name": "Oca", "value": 4000},
-                {"name": "Şub", "value": 3000},
-                {"name": "Mar", "value": 5000},
-                {"name": "Nis", "value": 4500},
-                {"name": "May", "value": 6000},
-                {"name": "Haz", "value": 5500}
-            ]
-        },
-        {
-            "chart_key": "sales_by_category",
-            "title": "Kategoriye Göre Satışlar",
-            "chart_type": "pie",
-            "data": [
-                {"name": "Web Tasarım", "value": 40},
-                {"name": "Mobil Uygulama", "value": 30},
-                {"name": "E-Ticaret", "value": 20},
-                {"name": "Diğer", "value": 10}
-            ]
-        },
-    ]
-    for c in sample_charts:
-        chart = ChartData(**c)
-        await db.chart_data.insert_one(serialize_doc(chart.model_dump()))
-    
-    # FAQs
+    # FAQs - Spa FAQs
     sample_faqs = [
-        {"question": "Web sitesi ne kadar sürede tamamlanır?", "answer": "Projenin kapsamına göre 2-6 hafta arasında değişir.", "order": 1},
-        {"question": "Ödeme seçenekleri nelerdir?", "answer": "Kredi kartı, havale/EFT ve taksitli ödeme seçenekleri mevcuttur.", "order": 2},
-        {"question": "Hosting dahil mi?", "answer": "Evet, tüm paketlerimizde hosting hizmeti dahildir.", "order": 3},
-        {"question": "Değişiklik yapabilir miyim?", "answer": "Evet, teslimattan sonra 30 gün içinde ücretsiz revizyon hakkınız var.", "order": 4},
+        {"question": "Randevu nasıl alabilirim?", "answer": "Telefonla (0252 417 23 67) veya web sitemiz üzerinden iletişim formu doldurarak randevu alabilirsiniz.", "order": 1},
+        {"question": "Hangi ödeme yöntemlerini kabul ediyorsunuz?", "answer": "Nakit, kredi kartı ve banka kartı ile ödeme yapabilirsiniz. Taksit seçenekleri mevcuttur.", "order": 2},
+        {"question": "Lazer epilasyon kaç seans sürer?", "answer": "Cilt tipine ve bölgeye göre değişmekle birlikte genellikle 6-8 seans yeterli olmaktadır.", "order": 3},
+        {"question": "Bakımdan önce nelere dikkat etmeliyim?", "answer": "Randevunuzdan 24 saat önce cilt bakımı yapılacak bölgeye peeling veya makyaj uygulamayınız.", "order": 4},
     ]
     for f in sample_faqs:
         faq = FAQ(**f)
