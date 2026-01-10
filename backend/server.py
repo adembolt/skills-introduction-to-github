@@ -627,6 +627,15 @@ async def log_activity(action: str, entity_type: str, entity_id: str, details: s
     doc = serialize_doc(log.model_dump())
     await db.activity_logs.insert_one(doc)
 
+def hash_password(password: str) -> str:
+    """Hash password with salt"""
+    salt = "admin_dashboard_salt_2025"
+    return hashlib.sha256(f"{password}{salt}".encode()).hexdigest()
+
+def generate_session_token() -> str:
+    """Generate a secure session token"""
+    return secrets.token_urlsafe(32)
+
 # ============ API ROUTES ============
 
 # Root endpoint
@@ -635,6 +644,105 @@ async def root():
     return {"message": "Admin Dashboard API", "version": "1.0.0"}
 
 # ============ AUTH ROUTES ============
+
+# Admin Login Model
+class AdminLoginRequest(BaseModel):
+    email: str
+    password: str
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@api_router.post("/auth/login")
+async def admin_login(login_data: AdminLoginRequest, response: Response):
+    """Login with email and password"""
+    # Find admin credentials
+    admin_creds = await db.admin_credentials.find_one({"email": login_data.email}, {"_id": 0})
+    
+    if not admin_creds:
+        raise HTTPException(status_code=401, detail="Geçersiz e-posta veya şifre")
+    
+    # Verify password
+    password_hash = hash_password(login_data.password)
+    if admin_creds.get("password_hash") != password_hash:
+        raise HTTPException(status_code=401, detail="Geçersiz e-posta veya şifre")
+    
+    # Generate session token
+    session_token = generate_session_token()
+    user_id = admin_creds.get("user_id", f"admin_{uuid.uuid4().hex[:12]}")
+    
+    # Store session
+    session_doc = {
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.user_sessions.delete_many({"user_id": user_id})
+    await db.user_sessions.insert_one(session_doc)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    await log_activity("LOGIN", "auth", user_id, f"Admin giriş yaptı: {admin_creds.get('name')}")
+    
+    return {
+        "user_id": user_id,
+        "email": admin_creds.get("email"),
+        "name": admin_creds.get("name"),
+        "picture": admin_creds.get("picture"),
+        "role": "admin"
+    }
+
+@api_router.post("/auth/change-password")
+async def change_password(request: Request, password_data: ChangePasswordRequest, session_token: Optional[str] = Cookie(default=None)):
+    """Change admin password"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Oturum açmanız gerekiyor")
+    
+    # Find admin credentials
+    admin_creds = await db.admin_credentials.find_one({"email": user.email}, {"_id": 0})
+    if not admin_creds:
+        raise HTTPException(status_code=404, detail="Admin bilgileri bulunamadı")
+    
+    # Verify current password
+    current_hash = hash_password(password_data.current_password)
+    if admin_creds.get("password_hash") != current_hash:
+        raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
+    
+    # Update password
+    new_hash = hash_password(password_data.new_password)
+    await db.admin_credentials.update_one(
+        {"email": user.email},
+        {"$set": {"password_hash": new_hash, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await log_activity("UPDATE", "auth", user.user_id, "Şifre değiştirildi")
+    
+    return {"message": "Şifre başarıyla değiştirildi"}
+
+@api_router.get("/auth/admin-info")
+async def get_admin_info():
+    """Get admin credentials info (for display only, not password)"""
+    admin_creds = await db.admin_credentials.find_one({}, {"_id": 0, "password_hash": 0})
+    if not admin_creds:
+        return {"exists": False}
+    return {
+        "exists": True,
+        "email": admin_creds.get("email"),
+        "name": admin_creds.get("name")
+    }
 
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
