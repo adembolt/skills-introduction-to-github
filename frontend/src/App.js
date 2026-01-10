@@ -1935,8 +1935,96 @@ const SettingsPage = ({ settings, loading, onUpdate }) => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="security">
+          <PasswordChangeSection />
+        </TabsContent>
       </Tabs>
     </div>
+  );
+};
+
+// Password Change Section Component
+const PasswordChangeSection = () => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChangePassword = async () => {
+    setError("");
+    
+    if (newPassword !== confirmPassword) {
+      setError("Yeni şifreler eşleşmiyor");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setError("Şifre en az 6 karakter olmalı");
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await api.post("/auth/change-password", {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      toast.success("Şifre başarıyla değiştirildi");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Şifre değiştirme başarısız");
+    }
+    setSaving(false);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Şifre Değiştir</CardTitle>
+        <CardDescription>Admin paneli şifrenizi değiştirin</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label htmlFor="current-password">Mevcut Şifre</Label>
+          <Input 
+            id="current-password" 
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            data-testid="current-password-input"
+          />
+        </div>
+        <div>
+          <Label htmlFor="new-password">Yeni Şifre</Label>
+          <Input 
+            id="new-password" 
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            data-testid="new-password-input"
+          />
+        </div>
+        <div>
+          <Label htmlFor="confirm-password">Yeni Şifre (Tekrar)</Label>
+          <Input 
+            id="confirm-password" 
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            data-testid="confirm-password-input"
+          />
+        </div>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button onClick={handleChangePassword} disabled={saving} data-testid="change-password-btn">
+          {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}
+          Şifreyi Değiştir
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
