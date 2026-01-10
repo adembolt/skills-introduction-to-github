@@ -61,7 +61,295 @@ class AdminDashboardAPITester:
             print(f"❌ Failed - Error: {str(e)}")
             return False, {}
 
-    def test_dashboard_stats(self):
+    def test_authentication(self):
+        """Test Authentication endpoints"""
+        print("\n" + "="*50)
+        print("TESTING AUTHENTICATION")
+        print("="*50)
+        
+        # Test admin login
+        login_data = {
+            "email": "admin@admin.com",
+            "password": "admin123"
+        }
+        
+        success, response = self.run_test("Admin Login", "POST", "/auth/login", 200, login_data)
+        if success:
+            print("✅ Login successful")
+            
+            # Test get current user
+            success, user_info = self.run_test("Get Current User", "GET", "/auth/me", 200)
+            if success:
+                print(f"✅ Current user: {user_info.get('name', 'Unknown')}")
+            
+            # Test admin info
+            success, admin_info = self.run_test("Get Admin Info", "GET", "/auth/admin-info", 200)
+            
+            return True
+        else:
+            print("❌ Login failed - cannot proceed with authenticated tests")
+            return False
+
+    def test_site_content_hero(self):
+        """Test Hero Section content management"""
+        print("\n" + "="*50)
+        print("TESTING HERO SECTION")
+        print("="*50)
+        
+        # Test GET hero section
+        success, hero = self.run_test("Get Hero Section", "GET", "/content/hero", 200)
+        if not success:
+            return False
+        
+        # Test UPDATE hero section
+        update_data = {
+            "title": "Test Hero Title",
+            "subtitle": "Test Hero Subtitle",
+            "description": "Test hero description",
+            "button_text": "Test Button",
+            "background_color": "#1e293b",
+            "text_color": "#ffffff"
+        }
+        
+        success, _ = self.run_test("Update Hero Section", "PUT", "/content/hero", 200, update_data)
+        return success
+
+    def test_site_content_services(self):
+        """Test Services content management"""
+        print("\n" + "="*50)
+        print("TESTING SERVICES")
+        print("="*50)
+        
+        # Test GET services
+        success, services = self.run_test("Get Services", "GET", "/content/services", 200)
+        if not success:
+            return False
+        
+        # Test CREATE service
+        test_service = {
+            "title": f"Test Service {datetime.now().strftime('%H%M%S')}",
+            "description": "Test service description",
+            "icon": "star",
+            "order": 1,
+            "is_active": True
+        }
+        
+        success, created_service = self.run_test("Create Service", "POST", "/content/services", 200, test_service)
+        if success and 'id' in created_service:
+            service_id = created_service['id']
+            self.created_ids['services'].append(service_id)
+            print(f"✅ Created service with ID: {service_id}")
+            
+            # Test UPDATE service
+            update_data = {"title": "Updated Test Service", "description": "Updated description"}
+            success, _ = self.run_test(f"Update Service {service_id}", "PUT", f"/content/services/{service_id}", 200, update_data)
+            
+            # Test DELETE service
+            success, _ = self.run_test(f"Delete Service {service_id}", "DELETE", f"/content/services/{service_id}", 200)
+            if success:
+                self.created_ids['services'].remove(service_id)
+        
+        return True
+
+    def test_site_content_pricing(self):
+        """Test Pricing content management"""
+        print("\n" + "="*50)
+        print("TESTING PRICING")
+        print("="*50)
+        
+        # Test GET pricing
+        success, pricing = self.run_test("Get Pricing", "GET", "/content/pricing", 200)
+        if not success:
+            return False
+        
+        # Test CREATE pricing
+        test_pricing = {
+            "name": f"Test Plan {datetime.now().strftime('%H%M%S')}",
+            "price": 99.99,
+            "currency": "₺",
+            "period": "ay",
+            "description": "Test pricing plan",
+            "features": ["Feature 1", "Feature 2", "Feature 3"],
+            "is_popular": False,
+            "button_text": "Satın Al",
+            "order": 1,
+            "is_active": True
+        }
+        
+        success, created_pricing = self.run_test("Create Pricing", "POST", "/content/pricing", 200, test_pricing)
+        if success and 'id' in created_pricing:
+            pricing_id = created_pricing['id']
+            self.created_ids['pricing'].append(pricing_id)
+            print(f"✅ Created pricing with ID: {pricing_id}")
+            
+            # Test UPDATE pricing
+            update_data = {"name": "Updated Test Plan", "price": 149.99, "is_popular": True}
+            success, _ = self.run_test(f"Update Pricing {pricing_id}", "PUT", f"/content/pricing/{pricing_id}", 200, update_data)
+            
+            # Test DELETE pricing
+            success, _ = self.run_test(f"Delete Pricing {pricing_id}", "DELETE", f"/content/pricing/{pricing_id}", 200)
+            if success:
+                self.created_ids['pricing'].remove(pricing_id)
+        
+        return True
+
+    def test_site_content_testimonials(self):
+        """Test Testimonials content management"""
+        print("\n" + "="*50)
+        print("TESTING TESTIMONIALS")
+        print("="*50)
+        
+        # Test GET testimonials
+        success, testimonials = self.run_test("Get Testimonials", "GET", "/content/testimonials", 200)
+        if not success:
+            return False
+        
+        # Test CREATE testimonial
+        test_testimonial = {
+            "name": f"Test Customer {datetime.now().strftime('%H%M%S')}",
+            "title": "Test Company CEO",
+            "content": "This is a test testimonial content",
+            "rating": 5,
+            "order": 1,
+            "is_active": True
+        }
+        
+        success, created_testimonial = self.run_test("Create Testimonial", "POST", "/content/testimonials", 200, test_testimonial)
+        if success and 'id' in created_testimonial:
+            testimonial_id = created_testimonial['id']
+            self.created_ids['testimonials'].append(testimonial_id)
+            print(f"✅ Created testimonial with ID: {testimonial_id}")
+            
+            # Test UPDATE testimonial
+            update_data = {"name": "Updated Test Customer", "rating": 4}
+            success, _ = self.run_test(f"Update Testimonial {testimonial_id}", "PUT", f"/content/testimonials/{testimonial_id}", 200, update_data)
+            
+            # Test DELETE testimonial
+            success, _ = self.run_test(f"Delete Testimonial {testimonial_id}", "DELETE", f"/content/testimonials/{testimonial_id}", 200)
+            if success:
+                self.created_ids['testimonials'].remove(testimonial_id)
+        
+        return True
+
+    def test_site_content_banners(self):
+        """Test Banners content management"""
+        print("\n" + "="*50)
+        print("TESTING BANNERS")
+        print("="*50)
+        
+        # Test GET banners
+        success, banners = self.run_test("Get Banners", "GET", "/content/banners", 200)
+        if not success:
+            return False
+        
+        # Test CREATE banner
+        test_banner = {
+            "title": f"Test Banner {datetime.now().strftime('%H%M%S')}",
+            "subtitle": "Test banner subtitle",
+            "image": "https://via.placeholder.com/800x400",
+            "link": "#test",
+            "button_text": "Learn More",
+            "order": 1,
+            "is_active": True
+        }
+        
+        success, created_banner = self.run_test("Create Banner", "POST", "/content/banners", 200, test_banner)
+        if success and 'id' in created_banner:
+            banner_id = created_banner['id']
+            self.created_ids['banners'].append(banner_id)
+            print(f"✅ Created banner with ID: {banner_id}")
+            
+            # Test UPDATE banner
+            update_data = {"title": "Updated Test Banner", "subtitle": "Updated subtitle"}
+            success, _ = self.run_test(f"Update Banner {banner_id}", "PUT", f"/content/banners/{banner_id}", 200, update_data)
+            
+            # Test DELETE banner
+            success, _ = self.run_test(f"Delete Banner {banner_id}", "DELETE", f"/content/banners/{banner_id}", 200)
+            if success:
+                self.created_ids['banners'].remove(banner_id)
+        
+        return True
+
+    def test_site_content_media(self):
+        """Test Media Library content management"""
+        print("\n" + "="*50)
+        print("TESTING MEDIA LIBRARY")
+        print("="*50)
+        
+        # Test GET media
+        success, media = self.run_test("Get Media", "GET", "/content/media", 200)
+        if not success:
+            return False
+        
+        # Test CREATE media
+        test_media = {
+            "name": f"Test Media {datetime.now().strftime('%H%M%S')}",
+            "url": "https://via.placeholder.com/400x300",
+            "type": "image",
+            "alt_text": "Test image",
+            "category": "test"
+        }
+        
+        success, created_media = self.run_test("Create Media", "POST", "/content/media", 200, test_media)
+        if success and 'id' in created_media:
+            media_id = created_media['id']
+            self.created_ids['media'].append(media_id)
+            print(f"✅ Created media with ID: {media_id}")
+            
+            # Test DELETE media
+            success, _ = self.run_test(f"Delete Media {media_id}", "DELETE", f"/content/media/{media_id}", 200)
+            if success:
+                self.created_ids['media'].remove(media_id)
+        
+        return True
+
+    def test_site_content_faqs(self):
+        """Test FAQs content management"""
+        print("\n" + "="*50)
+        print("TESTING FAQS")
+        print("="*50)
+        
+        # Test GET FAQs
+        success, faqs = self.run_test("Get FAQs", "GET", "/content/faqs", 200)
+        if not success:
+            return False
+        
+        # Test CREATE FAQ
+        test_faq = {
+            "question": f"Test Question {datetime.now().strftime('%H%M%S')}?",
+            "answer": "This is a test answer to the test question.",
+            "category": "general",
+            "order": 1,
+            "is_active": True
+        }
+        
+        success, created_faq = self.run_test("Create FAQ", "POST", "/content/faqs", 200, test_faq)
+        if success and 'id' in created_faq:
+            faq_id = created_faq['id']
+            self.created_ids['faqs'].append(faq_id)
+            print(f"✅ Created FAQ with ID: {faq_id}")
+            
+            # Test UPDATE FAQ
+            update_data = {"question": "Updated Test Question?", "answer": "Updated test answer."}
+            success, _ = self.run_test(f"Update FAQ {faq_id}", "PUT", f"/content/faqs/{faq_id}", 200, update_data)
+            
+            # Test DELETE FAQ
+            success, _ = self.run_test(f"Delete FAQ {faq_id}", "DELETE", f"/content/faqs/{faq_id}", 200)
+            if success:
+                self.created_ids['faqs'].remove(faq_id)
+        
+        return True
+
+    def test_content_all(self):
+        """Test get all site content endpoint"""
+        print("\n" + "="*50)
+        print("TESTING GET ALL CONTENT")
+        print("="*50)
+        
+        success, content = self.run_test("Get All Content", "GET", "/content/all", 200)
+        if success:
+            print("✅ Successfully retrieved all site content")
+        return success
         """Test dashboard statistics endpoint"""
         print("\n" + "="*50)
         print("TESTING DASHBOARD STATS")
