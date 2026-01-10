@@ -61,6 +61,29 @@ class AdminDashboardAPITester:
             print(f"❌ Failed - Error: {str(e)}")
             return False, {}
 
+    def test_dashboard_stats(self):
+        """Test dashboard statistics endpoint"""
+        print("\n" + "="*50)
+        print("TESTING DASHBOARD STATS")
+        print("="*50)
+        
+        success, response = self.run_test(
+            "Dashboard Stats",
+            "GET",
+            "/dashboard/stats",
+            200
+        )
+        
+        if success:
+            required_fields = ['total_users', 'total_products', 'total_orders', 'total_revenue', 'monthly_revenue', 'order_statuses']
+            missing_fields = [field for field in required_fields if field not in response]
+            if missing_fields:
+                print(f"⚠️  Missing fields in response: {missing_fields}")
+            else:
+                print("✅ All required dashboard fields present")
+        
+        return success
+
     def test_authentication(self):
         """Test Authentication endpoints"""
         print("\n" + "="*50)
