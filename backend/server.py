@@ -1883,14 +1883,16 @@ async def seed_data():
         doc = serialize_doc(order.model_dump())
         await db.orders.insert_one(doc)
     
-    # Default Settings
+    # Default Settings - Bamboo Beauty Lifes
     default_settings = SiteSettings(
-        site_name="Admin Dashboard",
-        site_description="Profesyonel yönetim paneli",
-        contact_email="info@example.com",
-        contact_phone="0212 123 4567",
-        contact_address="İstanbul, Türkiye",
-        footer_text="© 2025 Tüm hakları saklıdır."
+        site_name="BAMBOO BEAUTY LİFES",
+        site_description="Profesyonel Güzellik ve Bakım Merkezi - Marmaris",
+        contact_email="bamboobeautylifes@gmail.com",
+        contact_phone="0 (252) 417 23 67",
+        contact_address="Tepe mahallesi Kubilay Alpuğan Sokak No:4 Daire:2, Tokgöz Apartmanı Marmaris/MUĞLA",
+        social_instagram="https://instagram.com/bamboobeautylifes",
+        social_facebook="https://facebook.com/bamboobeautylifes",
+        footer_text="© 2025 BAMBOO BEAUTY LİFES. Tüm hakları saklıdır."
     )
     doc = serialize_doc(default_settings.model_dump())
     await db.settings.insert_one(doc)
