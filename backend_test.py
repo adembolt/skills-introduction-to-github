@@ -9,12 +9,19 @@ class AdminDashboardAPITester:
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
         self.tests_passed = 0
+        self.session = requests.Session()  # Use session for cookies
         self.created_ids = {
             'users': [],
             'products': [],
             'pages': [],
             'orders': [],
-            'categories': []
+            'categories': [],
+            'services': [],
+            'pricing': [],
+            'testimonials': [],
+            'banners': [],
+            'media': [],
+            'faqs': []
         }
 
     def run_test(self, name, method, endpoint, expected_status, data=None, params=None):
