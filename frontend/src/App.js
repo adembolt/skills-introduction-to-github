@@ -2384,4 +2384,17 @@ function App() {
   );
 }
 
+// Main App with Routing
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/*" element={<PublicSite />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
 export default App;
