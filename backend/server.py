@@ -1749,6 +1749,19 @@ async def seed_data():
     # Check if data already exists - check multiple collections
     existing_users = await db.users.count_documents({})
     existing_services = await db.service_cards.count_documents({})
+    existing_admin = await db.admin_credentials.count_documents({})
+    
+    # Always ensure admin credentials exist
+    if existing_admin == 0:
+        admin_creds = {
+            "user_id": "admin_main",
+            "email": "admin@admin.com",
+            "name": "Site Admin",
+            "password_hash": hash_password("admin123"),
+            "role": "admin",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.admin_credentials.insert_one(admin_creds)
     
     if existing_users > 0 and existing_services > 0:
         return {"message": "Veriler zaten mevcut"}
