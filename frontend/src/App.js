@@ -1745,6 +1745,7 @@ const SettingsPage = ({ settings, loading, onUpdate }) => {
           <TabsTrigger value="contact" data-testid="tab-contact">İletişim</TabsTrigger>
           <TabsTrigger value="social" data-testid="tab-social">Sosyal Medya</TabsTrigger>
           <TabsTrigger value="appearance" data-testid="tab-appearance">Görünüm</TabsTrigger>
+          <TabsTrigger value="security" data-testid="tab-security">Güvenlik</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
