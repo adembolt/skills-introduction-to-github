@@ -1899,55 +1899,64 @@ async def seed_data():
     
     # ============ SITE CONTENT SEED DATA ============
     
-    # Hero Section
+    # Hero Section - Bamboo Beauty Lifes
     hero = HeroSection(
-        title="Dijital Dönüşümünüze Başlayın",
-        subtitle="Profesyonel Web Çözümleri",
-        description="İşletmenizi büyütmek için en iyi dijital hizmetleri sunuyoruz. Modern tasarım, güçlü altyapı.",
-        button_text="Hemen Başla",
-        button_link="#contact",
-        background_color="#1e293b"
+        title="BAMBOO BEAUTY LİFES",
+        subtitle="Profesyonel Güzellik ve Bakım Merkezi",
+        description="Uzman kadromuz ve modern teknolojimizle size en iyi güzellik ve bakım hizmetini sunuyoruz. Marmaris'in en prestijli güzellik merkezi.",
+        button_text="Randevu Al",
+        button_link="#iletisim",
+        background_color="#1a1a2e",
+        text_color="#d4a574",
+        background_image="https://images.pexels.com/photos/3997390/pexels-photo-3997390.jpeg?auto=compress&cs=tinysrgb&w=1920"
     )
     await db.hero_section.insert_one(serialize_doc(hero.model_dump()))
     
-    # Service Cards
+    # Service Cards - Spa/Beauty Services
     sample_services = [
-        {"title": "Web Tasarım", "description": "Modern ve responsive web siteleri tasarlıyoruz.", "icon": "globe", "order": 1},
-        {"title": "Mobil Uygulama", "description": "iOS ve Android için mobil uygulamalar geliştiriyoruz.", "icon": "smartphone", "order": 2},
-        {"title": "E-Ticaret", "description": "Online satış platformları kuruyoruz.", "icon": "shopping-cart", "order": 3},
-        {"title": "SEO Optimizasyon", "description": "Arama motorlarında üst sıralara çıkın.", "icon": "search", "order": 4},
-        {"title": "Dijital Pazarlama", "description": "Sosyal medya ve reklam yönetimi.", "icon": "megaphone", "order": 5},
-        {"title": "Teknik Destek", "description": "7/24 teknik destek hizmeti.", "icon": "headphones", "order": 6},
+        {"title": "Cilt Bakımı", "description": "Profesyonel cilt analizi ve özel bakım uygulamaları ile cildinizi yenileyin.", "icon": "sparkles", "image": "https://images.pexels.com/photos/3762185/pexels-photo-3762185.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 1},
+        {"title": "Lazer Epilasyon", "description": "Son teknoloji lazer cihazlarımızla kalıcı tüy azaltma tedavisi.", "icon": "zap", "image": "https://images.pexels.com/photos/5069432/pexels-photo-5069432.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 2},
+        {"title": "Masaj Terapisi", "description": "Bamboo ve Hot Stone masajı ile rahatlayın, stresinizi atın.", "icon": "heart", "image": "https://images.pexels.com/photos/275768/pexels-photo-275768.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 3},
+        {"title": "Manikür & Pedikür", "description": "Profesyonel el ve ayak bakımı hizmetleri.", "icon": "star", "image": "https://images.pexels.com/photos/7755212/pexels-photo-7755212.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 4},
+        {"title": "Saç Bakımı", "description": "Keratin bakım, saç boyama ve kesim hizmetleri.", "icon": "scissors", "image": "https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 5},
+        {"title": "Kaş & Kirpik", "description": "Kalıcı kaş ve kirpik uygulamaları.", "icon": "eye", "image": "https://images.pexels.com/photos/5128267/pexels-photo-5128267.jpeg?auto=compress&cs=tinysrgb&w=600", "order": 6},
     ]
     for s in sample_services:
         service = ServiceCard(**s)
         await db.service_cards.insert_one(serialize_doc(service.model_dump()))
     
-    # Pricing Cards
+    # Pricing Cards - Spa Packages
     sample_pricing = [
         {
-            "name": "Başlangıç",
-            "price": 999,
-            "period": "ay",
-            "description": "Küçük işletmeler için ideal",
-            "features": ["5 Sayfa Web Sitesi", "Mobil Uyumlu", "SSL Sertifikası", "1 Yıl Hosting", "E-posta Desteği"],
+            "name": "Temel Bakım",
+            "price": 500,
+            "currency": "₺",
+            "period": "seans",
+            "description": "Başlangıç bakım paketi",
+            "features": ["Cilt Analizi", "Yüz Temizliği", "Nemlendirme Maskesi", "Masaj (15 dk)"],
             "is_popular": False,
             "order": 1
         },
         {
-            "name": "Profesyonel",
-            "price": 2499,
-            "period": "ay",
-            "description": "Büyüyen işletmeler için",
-            "features": ["15 Sayfa Web Sitesi", "Mobil Uyumlu", "SSL Sertifikası", "2 Yıl Hosting", "7/24 Destek", "SEO Optimizasyon", "Sosyal Medya Entegrasyonu"],
+            "name": "Premium Paket",
+            "price": 1500,
+            "currency": "₺",
+            "period": "seans",
+            "description": "En çok tercih edilen paket",
+            "features": ["Cilt Analizi", "Derin Temizlik", "Anti-Aging Bakım", "Yüz Masajı", "Özel Maske", "El Bakımı"],
             "is_popular": True,
             "order": 2
         },
         {
-            "name": "Kurumsal",
-            "price": 4999,
-            "period": "ay",
-            "description": "Büyük şirketler için",
+            "name": "VIP Paket",
+            "price": 3000,
+            "currency": "₺",
+            "period": "seans",
+            "description": "Tam gün lüks deneyim",
+            "features": ["Tüm Premium Özellikler", "Tam Vücut Masajı", "Özel VIP Oda", "İkram Servisi", "Hediye Paketi", "İndirim Kartı"],
+            "is_popular": False,
+            "order": 3
+        },
             "features": ["Sınırsız Sayfa", "Mobil Uyumlu", "SSL Sertifikası", "3 Yıl Hosting", "7/24 Öncelikli Destek", "SEO Optimizasyon", "E-Ticaret Entegrasyonu", "Özel Tasarım"],
             "is_popular": False,
             "order": 3
