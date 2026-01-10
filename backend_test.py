@@ -620,10 +620,13 @@ class AdminDashboardAPITester:
         print("="*50)
         
         # Clean up in reverse order to avoid dependency issues
-        for entity_type in ['orders', 'products', 'pages', 'users', 'categories']:
+        for entity_type in ['faqs', 'media', 'banners', 'testimonials', 'pricing', 'services', 'orders', 'products', 'pages', 'users', 'categories']:
             for item_id in self.created_ids[entity_type]:
                 try:
-                    endpoint = f"/{entity_type}/{item_id}"
+                    if entity_type in ['services', 'pricing', 'testimonials', 'banners', 'media', 'faqs']:
+                        endpoint = f"/content/{entity_type}/{item_id}"
+                    else:
+                        endpoint = f"/{entity_type}/{item_id}"
                     self.run_test(f"Cleanup {entity_type} {item_id}", "DELETE", endpoint, 200)
                 except:
                     pass
