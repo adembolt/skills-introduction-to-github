@@ -638,8 +638,26 @@ def main():
     tester = AdminDashboardAPITester()
     
     try:
+        # Test authentication first (required for other tests)
+        auth_success = tester.test_authentication()
+        if not auth_success:
+            print("❌ Authentication failed - skipping authenticated tests")
+            return 1
+        
         # Test all endpoints
         tester.test_dashboard_stats()
+        
+        # Test site content management (main focus)
+        tester.test_site_content_hero()
+        tester.test_site_content_services()
+        tester.test_site_content_pricing()
+        tester.test_site_content_testimonials()
+        tester.test_site_content_banners()
+        tester.test_site_content_media()
+        tester.test_site_content_faqs()
+        tester.test_content_all()
+        
+        # Test CRUD operations
         tester.test_users_crud()
         tester.test_products_crud()
         tester.test_pages_crud()
@@ -647,7 +665,6 @@ def main():
         tester.test_categories_crud()
         tester.test_settings()
         tester.test_activity_logs()
-        tester.test_seed_data()
         
     except KeyboardInterrupt:
         print("\n⚠️  Tests interrupted by user")
