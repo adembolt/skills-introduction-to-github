@@ -2036,8 +2036,8 @@ const PasswordChangeSection = () => {
   );
 };
 
-// ============ MAIN APP ============
-function App() {
+// ============ ADMIN DASHBOARD ============
+function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
