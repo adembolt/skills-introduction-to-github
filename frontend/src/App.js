@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import "@/App.css";
 import axios from "axios";
 import { 
@@ -6,7 +7,7 @@ import {
   Settings, Activity, Menu, X, Plus, Search, Edit, Trash2,
   ChevronDown, ChevronRight, TrendingUp, DollarSign, Eye,
   Clock, CheckCircle, XCircle, AlertCircle, RefreshCw,
-  Home, LogOut, Bell, User, BarChart3, Layers, FolderOpen
+  Home, LogOut, Bell, User, BarChart3, Layers, FolderOpen, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import { Toaster, toast } from 'sonner';
+import { PublicSite } from "@/pages/PublicSite";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -54,6 +56,7 @@ import {
 // Sidebar Navigation Items
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "view-site", label: "Siteyi Görüntüle", icon: Globe, isExternal: true },
   { id: "site-content", label: "Site İçerikleri", icon: Layers, submenu: [
     { id: "hero", label: "Hero Bölümü" },
     { id: "services", label: "Hizmetler" },
