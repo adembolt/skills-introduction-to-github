@@ -1741,6 +1741,54 @@ async def get_all_content():
         "settings": settings or SiteSettings().model_dump()
     }
 
+# ============ CONTACT FORM ============
+
+class ContactFormRequest(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    message: str
+
+class ContactMessage(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: str
+    phone: Optional[str] = None
+    message: str
+    is_read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+@api_router.post("/contact")
+async def submit_contact_form(contact_data: ContactFormRequest):
+    """Submit contact form"""
+    contact = ContactMessage(**contact_data.model_dump())
+    doc = serialize_doc(contact.model_dump())
+    await db.contact_messages.insert_one(doc)
+    await log_activity("CREATE", "contact", contact.id, f"Yeni iletişim mesajı: {contact.name}")
+    return {"message": "Mesajınız başarıyla gönderildi"}
+
+@api_router.get("/contact/messages", response_model=List[ContactMessage])
+async def get_contact_messages(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100)
+):
+    """Get contact form messages"""
+    messages = await db.contact_messages.find({}, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    return [deserialize_datetime(msg) for msg in messages]
+
+@api_router.put("/contact/messages/{message_id}/read")
+async def mark_message_read(message_id: str):
+    """Mark message as read"""
+    await db.contact_messages.update_one({"id": message_id}, {"$set": {"is_read": True}})
+    return {"message": "Mesaj okundu olarak işaretlendi"}
+
+@api_router.delete("/contact/messages/{message_id}")
+async def delete_contact_message(message_id: str):
+    """Delete contact message"""
+    await db.contact_messages.delete_one({"id": message_id})
+    return {"message": "Mesaj silindi"}
+
 # ============ SEED DATA ============
 
 @api_router.post("/seed-data")
