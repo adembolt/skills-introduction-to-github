@@ -1997,10 +1997,20 @@ async def seed_data():
 # Include the router in the main app
 app.include_router(api_router)
 
+cors_origins_raw = os.environ.get('CORS_ORIGINS', '*')
+if cors_origins_raw == '*':
+    # For credentials mode, we need specific origins
+    cors_origins = [
+        "http://localhost:3000",
+        "https://admin-central-38.preview.emergentagent.com"
+    ]
+else:
+    cors_origins = cors_origins_raw.split(',')
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
